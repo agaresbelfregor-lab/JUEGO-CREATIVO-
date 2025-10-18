@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Aventura de Ingenio y Lectura — Web</title>
+  <style>
+    :root{
+      --fondo-principal:#F0F8FF;
+      --fondo-sec:#E0FFFF;
+      --titulo:#4682B4;
+      --texto:#2F4F4F;
+      --btn-prim:#FFD700;
+      --btn-sec:#B0E0E6;
+      --correct:#3CB371;
+      --incorrect:#DC143C;
+      --max-width:900px;
+      --card-radius:12px;
+      --shadow:0 6px 18px rgba(0,0,0,0.08);
+    }
+    *{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+    html,body{height:100%;margin:0;background:var(--fondo-principal);color:var(--texto)}
+    .container{max-width:var(--max-width);margin:24px auto;padding:20px}
+    /* Header centrado con logo */
+    header{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      margin-bottom:6px;
+    }
+    h1{color:var(--titulo);margin:0;font-size:28px;text-align:center}
+    .logo-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.logo {
+  width: 150px; /* Ajusta el tamaño según necesites */
+  height: auto;
+}
+
+    .card{background:white;border-radius:var(--card-radius);box-shadow:var(--shadow);padding:18px;margin-top:18px}
+
+    .menu-grid{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+    .btn{padding:12px 18px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
+    .btn.large{font-size:18px;padding:14px 20px}
+    .btn.primary{background:var(--btn-prim)}
+    .btn.secondary{background:var(--btn-sec)}
+    .btn.danger{background:var(--incorrect);color:white}
+
+    .center{text-align:center}
+    .question{font-family:'Comic Sans MS', 'Segoe UI', sans-serif;font-size:20px;margin:12px 0;color:var(--texto)}
+    .options{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+    .option-btn{padding:20px;border-radius:10px;border:2px solid transparent;background:var(--btn-sec);cursor:pointer;text-align:left}
+    .feedback{margin-top:12px;font-weight:700}
+    .stars{font-size:20px;color:var(--btn-prim);margin-top:10px}
+    .progress{font-size:13px;color:#666;margin-top:6px}
+
+    /* Config centrada */
+    #config h3{ text-align:center; margin-top:0; }
+    #config .config-row{ display:flex; gap:12px; align-items:center; margin:8px 0; justify-content:center; flex-wrap:wrap; }
+    #config label{ font-size:14px; margin-right:6px; }
+    #config select,input[type=checkbox]{ padding:6px; }
+
+    footer{margin-top:18px;font-size:13px;color:#666;text-align:center}
+
+    @media (max-width:600px){
+      .container{padding:12px}
+      .btn.large{width:100%}
+      #logo-preview{max-width:160px;max-height:120px}
+      .menu-grid{flex-direction:column}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Aventura de Ingenio y Lectura</h1>
+
+      <!-- Logo preview (se mostrará si el usuario sube una imagen) -->
+      <div class="logo-container">
+          <img src="simon.png" alt="Logo del juego" class="logo"> </div>
+    </header>
+
+    <!-- Menu -->
+    <section id="menu" class="card">
+      <div class="center">
+        <p>Elige un modo de juego y configura las preferencias.</p>
+      </div>
+      <div class="menu-grid center">
+        <button class="btn large primary" id="btn-adivinanza">Adivinanzas 💡</button>
+        <button class="btn large primary" id="btn-lectura">Lectura 📚</button>
+        <button class="btn large primary" id="btn-mixto">Mixto 🎲</button>
+        <button class="btn secondary" id="btn-config">⚙️ Configuración</button>
+      </div>
+    </section>
+
+    <!-- Juego -->
+    <section id="juego" class="card" style="display:none">
+      <div class="center">
+        <h2 id="titulo-juego" style="margin:0;font-size:22px;color:var(--titulo)"></h2>
+      </div>
+      <div class="question center" id="pregunta-texto">Pregunta aquí</div>
+
+      <div class="options" id="opciones"></div>
+
+      <div class="feedback center" id="feedback"></div>
+      <div class="stars center" id="estrellas"></div>
+      <div class="progress center" id="progreso"></div>
+
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap">
+        <button class="btn" id="btn-volver">Volver al menú</button>
+        <button class="btn danger" id="btn-salir">Salir del juego</button>
+      </div>
+    </section>
+
+    <!-- Configuración -->
+    <section id="config" class="card" style="display:none">
+      <h3>Configuración</h3>
+      <div class="config-row">
+        <label for="musica-select">Música ambiente:</label>
+        <select id="musica-select">
+          <option value="none">Ninguna</option>
+          <option value="Music1.mp3">Musica 1</option>
+          <option value="Music2.mp3">Musica 2</option>
+          <option value="Music3.mp3">Musica 3</option>
+        </select>
+      </div>
+      <div class="config-row">
+        <label for="dificultad-select">Dificultad:</label>
+        <select id="dificultad-select">
+          <option value="facil">Fácil</option>
+          <option value="medio">Medio</option>
+          <option value="dificil">Difícil</option>
+        </select>
+      </div>
+      <div class="config-row">
+        <label><input type="checkbox" id="efectos-chk" checked> Efectos de sonido</label>
+      </div>
+      <div class="config-row">
+        <label><input type="checkbox" id="mostrar-resp-chk" checked> Mostrar respuesta si fallas</label>
+      </div>
+      <div style="margin-top:12px; display:flex; gap:8px; justify-content:center">
+        <button class="btn" id="guardar-config">Guardar Cambios</button>
+        <button class="btn" id="cancelar-config">Cancelar</button>
+      </div>
+    </section>
+
+    <footer>JUEGO CREADO POR ARIANA Y ALEJANDRA.</footer>
+
+  </div>
+
+  <script>
+    // ------------------ Datos del juego (mismos que en Python) ------------------
+    const adivinanzas = {
+      "Blanca por dentro, verde por fuera.": "pera",
+      "Vuelo de noche, duermo en el día.": "murcielago",
+      "Agua pasa por mi casa, cate de mi corazón.": "aguacate",
+      "Tengo agujas largas y salto sin parar.": "conejo",
+      "Tengo agujas pero no sé coser.": "reloj",
+      "Sube llena y baja vacía, si no se da prisa la sopa se enfría.": "cuchara",
+      "Soy redonda como el mundo y me comes en segundos.": "galleta",
+      "Sin alas vuelo, sin ojos veo.": "viento",
+      "Ladra y cuida la casa, ¿quién es?": "perro",
+      "Sin luz no soy nada, con luz brillo de madrugada.": "estrella"
+    };
+
+    const lecturas = [
+      ["La _____ brilla en el cielo.", "luna"],
+      ["El gato juega con la _____.", "pelota"],
+      ["Luis lee un libro _____.", "divertido"],
+      ["La niña canta una _____.", "cancion"],
+      ["El perro corre en el _____.", "parque"],
+      ["La maestra escribe en la _____.", "pizarra"],
+      ["Comemos arroz con _____.", "pollo"],
+      ["El pez nada en el _____.", "agua"],
+      ["El niño pinta con un _____.", "lapiz"],
+      ["El doctor trabaja en un _____.", "hospital"]
+    ];
+
+    // Construir pool de respuestas (normalizada -> estético)
+    const respuestasRaw = [...Object.values(adivinanzas), ...lecturas.map(l => l[1])];
+    const poolMap = {};
+    respuestasRaw.forEach(r => { poolMap[normalize(r)] = r; });
+
+    // ------------------ Utilidades ------------------
+    function normalize(str){
+      if(!str) return '';
+      // eliminar diacríticos
+      return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+    }
+
+    function esthetic(str){
+      if(!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    // ------------------ Estado y config ------------------
+    const defaults = {
+      musica: true,
+      efectos: true,
+      volumen: 1,
+      dificultad: 'medio',
+      mostrar_respuesta: true,
+      musica_actual: null
+    };
+
+    let config = {...defaults};
+    try{ const stored = JSON.parse(localStorage.getItem('juego_config')); if(stored) config = {...config, ...stored}; }catch(e){}
+
+    // DOM
+    const menu = document.getElementById('menu');
+    const juego = document.getElementById('juego');
+    const configSection = document.getElementById('config');
+
+    const tituloJuego = document.getElementById('titulo-juego');
+    const preguntaTexto = document.getElementById('pregunta-texto');
+    const opcionesNode = document.getElementById('opciones');
+    const feedback = document.getElementById('feedback');
+    const estrellas = document.getElementById('estrellas');
+    const progreso = document.getElementById('progreso');
+
+    // Logo elements
+    const logoInput = document.getElementById('logo-input');
+    const logoPreview = document.getElementById('logo-preview');
+    const btnSelectLogo = document.getElementById('btn-select-logo');
+    const btnRemoveLogo = document.getElementById('btn-remove-logo');
+
+    // Buttons
+    document.getElementById('btn-adivinanza').onclick = ()=>startGame('adivinanza');
+    document.getElementById('btn-lectura').onclick = ()=>startGame('lectura');
+    document.getElementById('btn-mixto').onclick = ()=>startGame('mixto');
+    document.getElementById('btn-config').onclick = ()=>showConfig();
+    document.getElementById('btn-volver').onclick = ()=>showMenu();
+    document.getElementById('btn-salir').onclick = ()=>showMenu();
+
+    // Config controls
+    const musicaSelect = document.getElementById('musica-select');
+    const dificultadSelect = document.getElementById('dificultad-select');
+    const efectosChk = document.getElementById('efectos-chk');
+    const mostrarRespChk = document.getElementById('mostrar-resp-chk');
+    const guardarConfigBtn = document.getElementById('guardar-config');
+    const cancelarConfigBtn = document.getElementById('cancelar-config');
+
+    guardarConfigBtn.onclick = ()=>{
+      const sel = musicaSelect.value;
+      config.musica_actual = sel === 'none' ? null : sel;
+      config.musica = !!config.musica_actual;
+      config.dificultad = dificultadSelect.value;
+      config.efectos = efectosChk.checked;
+      config.mostrar_respuesta = mostrarRespChk.checked;
+      localStorage.setItem('juego_config', JSON.stringify(config));
+      applyMusic();
+      alert('Configuración guardada');
+      showMenu();
+    }
+    cancelarConfigBtn.onclick = ()=>showMenu();
+
+    function showConfig(){
+      menu.style.display='none';
+      juego.style.display='none';
+      configSection.style.display='block';
+      // set controls
+      musicaSelect.value = config.musica_actual || 'none';
+      dificultadSelect.value = config.dificultad || 'medio';
+      efectosChk.checked = !!config.efectos;
+      mostrarRespChk.checked = !!config.mostrar_respuesta;
+    }
+
+    function showMenu(){
+      juego.style.display='none';
+      configSection.style.display='none';
+      menu.style.display='block';
+      stopMusic();
+    }
+
+    // ------------------ Audio ------------------
+    let ambientAudio = null;
+    let effectCorrect = null;
+    let effectWrong = null;
+
+    function loadEffects(){
+      // Busca archivos correct.wav/mp3 y wrong.wav/mp3
+      effectCorrect = new Audio('sonido-correcto.mp3');
+      effectCorrect.onerror = ()=>{ effectCorrect = new Audio('rorrect.wav'); }
+      effectWrong = new Audio('wrong.wav');
+      effectWrong.onerror = ()=>{ effectWrong = new Audio('sonido-incorrecto.mp3'); }
+    }
+
+    function applyMusic(){
+      stopMusic();
+      if(config.musica && config.musica_actual){
+        ambientAudio = new Audio(config.musica_actual);
+        ambientAudio.loop = true;
+        ambientAudio.volume = config.volumen !== undefined ? config.volumen : 1;
+        ambientAudio.play().catch(e=>{/* autoplay puede fallar en navegadores */});
+      }
+    }
+    function stopMusic(){ if(ambientAudio){ ambientAudio.pause(); ambientAudio.currentTime = 0; ambientAudio = null; } }
+
+    // ------------------ Juego ------------------
+    let state = {
+      puntos:0,
+      preguntaNum:0,
+      modo:'',
+      preguntasMixto:[],
+      totalPreguntas:10,
+      preguntaActual:null
+    };
+
+    function startGame(modo){
+      state.puntos = 0;
+      state.preguntaNum = 0;
+      state.modo = modo;
+      // total preguntas según dificultad
+      const dif = config.dificultad || 'medio';
+      state.totalPreguntas = (dif === 'facil')?5:(dif==='dificil')?15:10;
+
+      if(modo === 'mixto'){
+        const numAd = Math.floor(state.totalPreguntas/2);
+        const numLe = state.totalPreguntas - numAd;
+        const keysAd = Object.entries(adivinanzas);
+        shuffleArray(keysAd);
+        shuffleArray(lecturas);
+        const listaAd = keysAd.slice(0, Math.min(numAd, keysAd.length));
+        const listaLe = lecturas.slice(0, Math.min(numLe, lecturas.length));
+        // almacenar ([tipo, [pregunta,respuesta]])
+        state.preguntasMixto = [...listaAd.map(p=>['adivinanza',p]), ...listaLe.map(p=>['lectura',p])];
+        shuffleArray(state.preguntasMixto);
+      } else {
+        state.preguntasMixto = [];
+      }
+
+      menu.style.display='none';
+      configSection.style.display='none';
+      juego.style.display='block';
+      applyMusic();
+      updateUI();
+      siguientePregunta();
+    }
+
+    function siguientePregunta(){
+      feedback.textContent = '';
+      // habilitar later
+      if(state.preguntaNum >= state.totalPreguntas){ terminarJuego(); return; }
+
+      let preguntaObj;
+      if(state.modo === 'adivinanza'){
+        const entries = Object.entries(adivinanzas);
+        preguntaObj = entries[Math.floor(Math.random()*entries.length)]; // [preg, resp]
+        state.preguntaActual = {tipo:'adivinanza', pregunta:preguntaObj[0], respuesta:preguntaObj[1]};
+      } else if(state.modo === 'lectura'){
+        const p = lecturas[Math.floor(Math.random()*lecturas.length)];
+        state.preguntaActual = {tipo:'lectura', pregunta:p[0], respuesta:p[1]};
+      } else { // mixto
+        const item = state.preguntasMixto[state.preguntaNum]; // [tipo, [preg,resp]]
+        state.preguntaActual = {tipo:item[0], pregunta:item[1][0], respuesta:item[1][1]};
+      }
+
+      // Título del juego centrado y claro
+      tituloJuego.textContent = `${capitalize(state.modo)} - Pregunta ${state.preguntaNum+1}/${state.totalPreguntas}`;
+      preguntaTexto.textContent = state.preguntaActual.pregunta;
+      progreso.textContent = `Puntos: ${state.puntos}    Pregunta: ${state.preguntaNum+1}/${state.totalPreguntas}`;
+
+      const opts = generarOpciones(state.preguntaActual.respuesta);
+      renderOpciones(opts);
+    }
+
+    function generarOpciones(correctaOriginal){
+      const correctaNorm = normalize(correctaOriginal);
+      const pool = Object.assign({}, poolMap);
+      delete pool[correctaNorm];
+      const keys = Object.keys(pool);
+      // si hay menos de 2, reconstruir desde raw
+      if(keys.length < 2){
+        const all = {};
+        respuestasRaw.forEach(r=>{ if(normalize(r)!==correctaNorm) all[normalize(r)] = r; });
+        Object.assign(pool, all);
+      }
+      const keysPool = Object.keys(pool);
+      shuffleArray(keysPool);
+      const incorrectas = keysPool.slice(0,2);
+      let opciones = [{n:correctaNorm, t:esthetic(correctaOriginal)}];
+      incorrectas.forEach(k=> opciones.push({n:k, t:pool[k]}));
+      // si faltan, rellenar
+      while(opciones.length<3) opciones.push({n:'----', t:'-----'});
+      shuffleArray(opciones);
+      return opciones;
+    }
+
+    function renderOpciones(opciones){
+      opcionesNode.innerHTML = '';
+      opciones.forEach(opt=>{
+        const b = document.createElement('button');
+        b.className = 'option-btn';
+        b.textContent = opt.t;
+        b.onclick = ()=>{
+          // deshabilitar todas
+          Array.from(opcionesNode.children).forEach(c=>c.disabled=true);
+          comprobarRespuesta(opt.n);
+        };
+        opcionesNode.appendChild(b);
+      });
+    }
+
+    function comprobarRespuesta(respuestaNorm){
+      const correctaNorm = normalize(state.preguntaActual.respuesta);
+      if(config.efectos) playEffect('click');
+      if(respuestaNorm === correctaNorm){
+        state.puntos += 1;
+        feedback.style.color = 'var(--correct)';
+        feedback.textContent = '¡Correcto! ✅';
+        if(config.efectos) playEffect('correct');
+      } else {
+        feedback.style.color = 'var(--incorrect)';
+        let msg = '¡Incorrecto! ❌';
+        if(config.mostrar_respuesta){ msg += ' La respuesta correcta era: ' + esthetic(state.preguntaActual.respuesta); }
+        feedback.textContent = msg;
+        if(config.efectos) playEffect('wrong');
+      }
+      estrellas.textContent = '⭐'.repeat(state.puntos);
+      state.preguntaNum += 1;
+      setTimeout(()=>{ siguientePregunta(); }, 900);
+    }
+
+    function terminarJuego(){
+      alert(`🎉 ¡Juego Terminado! 🎉\nHas conseguido ${state.puntos} de ${state.totalPreguntas}.`);
+      showMenu();
+    }
+
+    function updateUI(){
+      estrellas.textContent = '⭐'.repeat(state.puntos);
+    }
+
+    // ------------------ Efectos simples ------------------
+    function playEffect(kind){
+      // kind: 'correct','wrong','click'
+      try{
+        if(kind === 'correct'){
+          if(!effectCorrect) loadEffects();
+          effectCorrect && effectCorrect.play().catch(()=>{});
+        } else if(kind === 'wrong'){
+          if(!effectWrong) loadEffects();
+          effectWrong && effectWrong.play().catch(()=>{});
+        } else if(kind === 'click'){
+          // opcional: pequeño click
+        }
+      }catch(e){/* ignore audio errors */}
+    }
+
+    // ------------------ Helpers ------------------
+    function shuffleArray(a){
+      for(let i=a.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [a[i],a[j]]=[a[j],a[i]];
+      }
+    }
+
+    function capitalize(s){ if(!s) return ''; return s.charAt(0).toUpperCase()+s.slice(1); }
+
+    // ------------------ Logo handling (JPG/PNG) ------------------
+    // Cargar logo guardado en localStorage (dataURL)
+    function loadSavedLogo(){
+      try{
+        const data = localStorage.getItem('juego_logo_dataurl');
+        if(data){
+          logoPreview.src = data;
+          logoPreview.style.display = 'block';
+          btnRemoveLogo.style.display = 'inline-block';
+        } else {
+          logoPreview.style.display = 'none';
+          btnRemoveLogo.style.display = 'none';
+        }
+      }catch(e){}
+    }
+
+    // ------------------ Inicialización ------------------
+    loadEffects();
+    loadSavedLogo();
+    // aplicar música si viene de config cuando se abra menú
+    if(config.musica && config.musica_actual) applyMusic();
+
+  </script>
+</body>
+</html>
